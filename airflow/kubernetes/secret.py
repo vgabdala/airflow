@@ -55,7 +55,7 @@ class Secret(K8SModel):
             # if deploying to env, capitalize the deploy target
             self.deploy_target = deploy_target.upper()
 
-        if key is not None and deploy_target is None:
+        if key is not None and deploy_target is None and deploy_type == "env":
             raise AirflowConfigException(
                 'If `key` is set, `deploy_target` should not be None'
             )

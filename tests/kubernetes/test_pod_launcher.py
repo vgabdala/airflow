@@ -178,6 +178,12 @@ class TestPodLauncherHelper(unittest.TestCase):
                 namespace="bar"
             ),
             spec=k8s.V1PodSpec(
+                init_containers=[
+                    k8s.V1Container(
+                        name="init-container",
+                        volume_mounts=[k8s.V1VolumeMount(mount_path="/tmp", name="init-secret")]
+                    )
+                ],
                 containers=[
                     k8s.V1Container(
                         name="base",
@@ -238,6 +244,12 @@ class TestPodLauncherHelper(unittest.TestCase):
                             secret_name="secret-name",
 
                         )
+                    ),
+                    k8s.V1Volume(
+                        name="init-secret",
+                        secret=k8s.V1SecretVolumeSource(
+                            secret_name="secret-name",
+                        )
                     )
                 ]
             )
@@ -248,6 +260,12 @@ class TestPodLauncherHelper(unittest.TestCase):
             name="foo",
             namespace="bar",
             envs={},
+            init_containers=[
+                k8s.V1Container(
+                    name="init-container",
+                    volume_mounts=[k8s.V1VolumeMount(mount_path="/tmp", name="init-secret")]
+                )
+            ],
             cmds=["foo"],
             image="myimage",
             ports=[
@@ -273,7 +291,8 @@ class TestPodLauncherHelper(unittest.TestCase):
                     sub_path=None,
                 )],
             secrets=[Secret("env", "AIRFLOW_SECRET", "ai", "secret_key"),
-                     Secret('volume', '/opt/mount', 'airflow-secret', "secret-name")],
+                     Secret('volume', '/opt/mount', 'airflow-secret', "secret-name"),
+                     Secret('volume', None, 'init-secret', 'secret-name')],
             security_context={'fsGroup': 0, 'runAsUser': 0},
             volumes=[Volume(name="myvolume", configs={'name': 'myvolume'}),
                      Volume(name="airflow-config", configs={'configMap': {'data': 'airflow-data'},
