@@ -307,6 +307,6 @@ def _extract_volume_secret(volume, volume_mount):
     if not volume.secret:
         return None
     if volume_mount:
-        Secret("volume", volume_mount.mount_path, volume.name, volume.secret.secret_name)
+        return Secret("volume", volume_mount.mount_path, volume.name, volume.secret.secret_name)
     else:
-        Secret("volume", None, volume.name, volume.secret.secret_name)
+        return Secret("volume", None, volume.name, volume.secret.secret_name)
