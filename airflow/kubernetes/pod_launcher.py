@@ -22,6 +22,7 @@ from datetime import datetime as dt
 
 import tenacity
 from kubernetes import watch, client
+from kubernetes.client.api_client import ApiClient
 from kubernetes.client import models as k8s
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream as kubernetes_stream
@@ -297,6 +298,11 @@ def _convert_to_airflow_pod(pod):
     env_vars, secrets = _extract_env_vars_and_secrets(base_container.env)
     volumes, vol_secrets = _extract_volumes_and_secrets(pod.spec.volumes, base_container.volume_mounts)
     secrets.extend(vol_secrets)
+    api_client = ApiClient()
+    if pod.spec.init_containers is None:
+        init_containers = [],
+    else:
+        init_containers = [api_client.sanitize_for_serialization(i) for i in pod.spec.init_containers]
     dummy_pod = Pod(
         image=base_container.image,
         envs=env_vars,
@@ -312,7 +318,7 @@ def _convert_to_airflow_pod(pod):
         namespace=pod.metadata.namespace,
         image_pull_policy=base_container.image_pull_policy or 'IfNotPresent',
         tolerations=pod.spec.tolerations,
-        init_containers=pod.spec.init_containers,
+        init_containers=init_containers,
         image_pull_secrets=pod.spec.image_pull_secrets,
         resources=base_container.resources,
         service_account_name=pod.spec.service_account_name,

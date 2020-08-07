@@ -261,10 +261,7 @@ class TestPodLauncherHelper(unittest.TestCase):
             namespace="bar",
             envs={},
             init_containers=[
-                k8s.V1Container(
-                    name="init-container",
-                    volume_mounts=[k8s.V1VolumeMount(mount_path="/tmp", name="init-secret")]
-                )
+                {'name': 'init-container', 'volumeMounts': [{'mountPath': '/tmp', 'name': 'init-secret'}]}
             ],
             cmds=["foo"],
             image="myimage",

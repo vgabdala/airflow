@@ -70,6 +70,13 @@ def pod_mutation_hook(pod):
       "mountPath": "/opt/airflow/secrets/"
     }
 
+    if pod.init_containers is not None:
+        for i in range(len(pod.init_containers)):
+             init_container = pod.init_containers[i]
+             init_container['securityContext'] = {"runAsGroup":50000,"runAsUser":50000}
+             if init_container['name'] == 'dag-sync':
+                init_container['securityContext'] = {"runAsGroup":40000,"runAsUser":40000}
+
     pod.volumes.append(secret_volume)
     pod.volume_mounts.append(secret_volume_mount)
 
@@ -247,11 +254,16 @@ class LocalSettingsTest(unittest.TestCase):
 
             self.mock_kube_client = Mock()
             self.pod_launcher = PodLauncher(kube_client=self.mock_kube_client)
+            init_container = k8s.V1Container(
+                name="init-container",
+                volume_mounts=[k8s.V1VolumeMount(mount_path="/tmp", name="init-secret")]
+            )
             pod = pod_generator.PodGenerator(
                 image="foo",
                 name="bar",
                 namespace="baz",
                 image_pull_policy="Never",
+                init_containers=[init_container],
                 cmds=["foo"],
                 args=["/bin/sh", "-c", "touch /tmp/healthy"],
                 tolerations=[
@@ -286,6 +298,9 @@ class LocalSettingsTest(unittest.TestCase):
                                                             'name': 'foo',
                                                             'readOnly': True,
                                                             'subPath': '/'}]}],
+                          'initContainers': [{'name': 'init-container',
+                                              'volumeMounts': [{'mountPath': '/tmp',
+                                                                'name': 'init-secret'}]}],
                           'hostNetwork': False,
                           'imagePullSecrets': [],
                           'tolerations': [{'effect': 'NoSchedule',
@@ -333,6 +348,11 @@ class LocalSettingsTest(unittest.TestCase):
                                                            ]}],
                           'hostNetwork': False,
                           'imagePullSecrets': [],
+                          'initContainers': [{'name': 'init-container',
+                                              'securityContext': {'runAsGroup': 50000,
+                                                                  'runAsUser': 50000},
+                                              'volumeMounts': [{'mountPath': '/tmp',
+                                                                'name': 'init-secret'}]}],
                           'tolerations': [{'effect': 'NoSchedule',
                                            'key': 'static-pods',
                                            'operator': 'Equal',
