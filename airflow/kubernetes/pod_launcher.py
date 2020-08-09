@@ -294,6 +294,10 @@ class PodLauncher(LoggingMixin):
 
 
 def _convert_to_airflow_pod(pod):
+    """
+    Converts a k8s V1Pod object into an `airflow.kubernetes.pod.Pod` object.
+    This function is purely for backwards compatibility
+    """
     base_container = pod.spec.containers[0]  # type: k8s.V1Container
     env_vars, secrets = _extract_env_vars_and_secrets(base_container.env)
     volumes, vol_secrets = _extract_volumes_and_secrets(pod.spec.volumes, base_container.volume_mounts)

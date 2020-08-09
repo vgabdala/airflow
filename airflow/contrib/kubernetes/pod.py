@@ -198,6 +198,9 @@ class Pod(object):
 
 
 def _extract_env_vars_and_secrets(env_vars):
+    """
+    Extracts environment variables and Secret objects from V1Pod Environment
+    """
     result = {}
     env_vars = env_vars or []  # type: List[Union[k8s.V1EnvVar, dict]]
     secrets = []
