@@ -299,9 +299,8 @@ def _convert_to_airflow_pod(pod):
     volumes, vol_secrets = _extract_volumes_and_secrets(pod.spec.volumes, base_container.volume_mounts)
     secrets.extend(vol_secrets)
     api_client = ApiClient()
-    if pod.spec.init_containers is None:
-        init_containers = [],
-    else:
+    init_containers = pod.spec.init_containers
+    if pod.spec.init_containers is not None:
         init_containers = [api_client.sanitize_for_serialization(i) for i in pod.spec.init_containers]
     dummy_pod = Pod(
         image=base_container.image,
